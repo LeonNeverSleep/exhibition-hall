@@ -396,33 +396,33 @@ const paintings = [
   {
     url: "assets/images/1.webp",
     position: [
-      -hallDepth / 2 + wallThickness / 2 + 5,
-      hallHeight / 2,
-      -hallWidth / 4 -12,
+      -hallDepth / 2 + wallThickness / 2 + 4,
+      hallHeight / 2+1,
+      -hallWidth / 4 - 11,
     ],
     rotation: [0, Math.PI, 0],
   },
   {
     url: "assets/images/2.webp",
     position: [
-      -hallDepth / 2 + wallThickness / 2 -2,
-      hallHeight / 2,
-      hallWidth / 4 -12,
+      -hallDepth / 2 + wallThickness / 2 - 2,
+      hallHeight / 2 - 2,
+      hallWidth / 4 - 13,
     ],
     rotation: [0, Math.PI, 0],
   },
   {
     url: "assets/images/3.webp",
     position: [
-      hallDepth / 2 - wallThickness / 2 + 3,
-      hallHeight / 2,
-      hallWidth / 4 - 11,
+      hallDepth / 2 - wallThickness / 2 + 2,
+      hallHeight / 2+1,
+      hallWidth / 4 - 13,
     ],
     rotation: [0, Math.PI, 0],
   },
   {
     url: "assets/images/4.webp",
-    position: [0 + 5, hallHeight / 2, -hallWidth / 2 + wallThickness / 2 -8],
+    position: [0 + 3, hallHeight / 2-2, -hallWidth / 2 + wallThickness / 2 - 8],
     rotation: [0, Math.PI, 0],
   },
 ];
@@ -554,7 +554,7 @@ loader.load(
       }
     });
 
-    character.position.set(-0.5, 0.2, 10.0);
+    character.position.set(-0.5, 0.2, 2.0);
     character.scale.set(0.02, 0.02, 0.02);
     scene.add(character);
 
