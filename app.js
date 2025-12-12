@@ -826,9 +826,7 @@ document.getElementById("open-btn").addEventListener("click", () => {
         maxDuration = Math.max(maxDuration, duration);
       }
       console.log(
-        `倒放动画 ${index}: 从 ${action.time}s 开始, timeScale=${
-          action.timeScale
-        },时长：${duration}s`
+        `倒放动画 ${index}: 从 ${action.time}s 开始, timeScale=${action.timeScale},时长：${duration}s`
       );
     });
 
@@ -1351,83 +1349,19 @@ function onXRFrame(time, frame) {
   }
 }
 // === Audio ===
-let marbleSound;
-const audioLoader = new THREE.AudioLoader();
+const audioElement = new Audio("./assets/preview.mp3");
+audioElement.volume = 1.0;
+audioElement.loop = true
 
-// Load sound
-audioLoader.load("./assets/preview.mp3", (buffer) => {
-  const listener = new THREE.AudioListener();
-  camera.add(listener);
-
-  marbleSound = new THREE.PositionalAudio(listener);
-  marbleSound.setBuffer(buffer);
-  marbleSound.setRefDistance(1);
-  marbleSound.setVolume(0.5);
-});
-const marbles = [];
-
-function spawnMarble() {
-  if (marbleSound) {
-    marbleSound.play();
+function toggleAudio() {
+  if (audioElement.paused) {
+    audioElement.play();
+  } else {
+    audioElement.pause();
   }
-  //   else {
-  //     // Fallback to HTML5 Audio if Three.js audio isn't loaded yet
-  //     const fallbackAudio = document.getElementById("marbleSound");
-  //     if (fallbackAudio) {
-  //       fallbackAudio.currentTime = 0; // Rewind to start
-  //       fallbackAudio.play();
-  //     }
-  //   }
-
-  //   const radius = 0.015;
-  //   const spread = 0.045; // Smaller spread to keep marbles inside the cup
-  //   const body = new CANNON.Body({
-  //     mass: 0.05,
-  //     shape: new CANNON.Sphere(radius),
-  //     position: new CANNON.Vec3(
-  //       -1.15 + (Math.random() - 0.5) * spread, // X: near cup center
-  //       3, // Y: just above cup rim (adjust as needed)
-  //       0.8 + (Math.random() - 0.5) * spread // Z: near cup center
-  //     ),
-  //     material: new CANNON.Material({
-  //       restitution: 0.7, // More bouncy
-  //     }),
-  //   });
-
-  //   // Add floor collision
-  //   body.addEventListener("collide", (e) => {
-  //     if (e.body === floorBody) {
-  //       // Remove marble after 5 seconds of hitting the floor
-  //       setTimeout(() => {
-  //         const index = marbles.findIndex((m) => m.body === body);
-  //         if (index !== -1) {
-  //           world.removeBody(body);
-  //           scene.remove(marbles[index].mesh);
-  //           marbles.splice(index, 1);
-  //         }
-  //       }, 2000);
-  //     }
-  //   });
-
-  //   world.addBody(body);
-
-  //   const material = new THREE.MeshPhysicalMaterial({
-  //     color: new THREE.Color(Math.random(), Math.random(), Math.random()),
-  //     transmission: 1,
-  //     roughness: 0,
-  //     thickness: 0.1,
-  //     envMap: cubeMap,
-  //     transparent: true,
-  //   });
-  //   const mesh = new THREE.Mesh(
-  //     new THREE.SphereGeometry(radius, 32, 32),
-  //     material
-  //   );
-  //   mesh.castShadow = true;
-  //   scene.add(mesh);
-
-  //   marbles.push({ mesh, body });
 }
+document.getElementById("ar-btn").addEventListener("click", toggleAudio);
+
 // AR按钮事件处理
 // document.getElementById("ar-btn").addEventListener("click",  function () {
 //   if (xrSession) {
@@ -1441,7 +1375,6 @@ function spawnMarble() {
 //     }
 //   }
 // });
-document.getElementById("ar-btn").addEventListener("click", spawnMarble);
 
 // 在初始化代码末尾添加
 // setupPaintingControls(); // 画作控制GUI
