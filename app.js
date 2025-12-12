@@ -397,7 +397,7 @@ const paintings = [
     url: "assets/images/1.webp",
     position: [
       -hallDepth / 2 + wallThickness / 2 + 4,
-      hallHeight / 2+1,
+      hallHeight / 2 + 1,
       -hallWidth / 4 - 11,
     ],
     rotation: [0, Math.PI, 0],
@@ -415,14 +415,18 @@ const paintings = [
     url: "assets/images/3.webp",
     position: [
       hallDepth / 2 - wallThickness / 2 + 2,
-      hallHeight / 2+1,
+      hallHeight / 2 + 1,
       hallWidth / 4 - 13,
     ],
     rotation: [0, Math.PI, 0],
   },
   {
     url: "assets/images/4.webp",
-    position: [0 + 3, hallHeight / 2-2, -hallWidth / 2 + wallThickness / 2 - 8],
+    position: [
+      0 + 3,
+      hallHeight / 2 - 2,
+      -hallWidth / 2 + wallThickness / 2 - 8,
+    ],
     rotation: [0, Math.PI, 0],
   },
 ];
@@ -517,10 +521,11 @@ scene.background = envMap;
 // const axesHelper = new THREE.AxesHelper(20);
 // scene.add(axesHelper);
 // 加载GLB模型
-let model, mixer;
+let model, mixer, modelAnimations;
 const loader = new THREE.GLTFLoader();
 let modelScale = 1;
 let animationPlayed = false;
+let isOpen = false; // 跟踪门的开关状态
 
 loader.load(
   "assets/models/102.glb",
@@ -729,35 +734,146 @@ modelPaths.forEach(loadModel);
 //   .onChange((val) => stage.material.color.set(val));
 // stageFolder.open();
 
+// 存储所有动画action
+let animationActions = [];
+let isAnimating = false; // 标记是否正在播放动画
+
 // OPEN按钮事件
 document.getElementById("open-btn").addEventListener("click", () => {
-  if (
-    model &&
-    modelAnimations &&
-    modelAnimations.length > 0 &&
-    !animationPlayed
-  ) {
-    // 创建动画混合器
-    mixer = new THREE.AnimationMixer(model);
+  const btn = document.getElementById("open-btn");
 
-    // 获取并播放所有动画
+  // 如果正在播放动画，禁止点击
+  if (isAnimating) {
+    console.log("动画正在播放中，请等待...");
+    return;
+  }
+
+  if (!model || !modelAnimations || modelAnimations.length === 0) {
+    console.warn("动画无法播放:", {
+      modelLoaded: !!model,
+      hasAnimations: !!modelAnimations && modelAnimations.length > 0,
+    });
+    return;
+  }
+
+  // 如果还没有创建混合器，先创建
+  if (!mixer) {
+    mixer = new THREE.AnimationMixer(model);
+    // 创建所有动画action并保存
     modelAnimations.forEach((anim) => {
       const action = mixer.clipAction(anim);
       action.setLoop(THREE.LoopOnce, 1);
       action.clampWhenFinished = true;
-      action.reset().play();
-      console.log(`播放动画: ${anim.name}, 时长: ${anim.duration}s`);
-    });
-
-    animationPlayed = true;
-  } else {
-    console.warn("动画无法播放:", {
-      modelLoaded: !!model,
-      hasAnimations: !!modelAnimations && modelAnimations.length > 0,
-      alreadyPlayed: animationPlayed,
+      animationActions.push(action);
     });
   }
+
+  // 禁用按钮，开始动画
+  isAnimating = true;
+  btn.disabled = true;
+  btn.style.opacity = "0.5";
+  btn.style.cursor = "not-allowed";
+
+  if (!isOpen) {
+    // 当前是关闭状态，执行打开动画（正序：抽屉先开，物体后飞出）
+    console.log("执行打开动画");
+
+    // 计算最长动画时长
+    let maxDuration = 0;
+    animationActions.forEach((action, index) => {
+      action.paused = false;
+      action.timeScale = 1; // 正向播放
+      action.reset();
+      action.play();
+      const duration = action.getClip().duration;
+      maxDuration = Math.max(maxDuration, duration);
+      console.log(`播放动画 ${index}: 时长 ${duration}s`);
+    });
+
+    btn.textContent = "CLOSE";
+    isOpen = true;
+
+    // 动画播放完成后重新启用按钮
+    setTimeout(() => {
+      isAnimating = false;
+      btn.disabled = false;
+      btn.style.opacity = "1";
+      btn.style.cursor = "pointer";
+      console.log("打开动画完成");
+    }, maxDuration * 1000 + 100); // 加100ms缓冲
+  } else {
+    // 当前是打开状态，执行关闭动画（倒序：物体先回去，抽屉后关闭）
+    console.log("执行关闭动画（倒放）");
+    // 创建倒序数组，不修改原数组
+    const reversedActions = [...animationActions].reverse();
+
+    let maxDuration = 0;
+    reversedActions.forEach((action, index) => {
+      action.timeScale = -1; // 倒放
+      action.time = action.getClip().duration; // 从动画结束位置开始
+      const duration = action.getClip().duration;
+
+      if (index >= 6) {
+        console.log(`动画 ${index} 时长小于1s，等待1460ms后播放`);
+        setTimeout(() => {
+          action.paused = false;
+          action.play();
+        }, 1460);
+        maxDuration = Math.max(maxDuration, duration + 1.46);
+      } else {
+        action.paused = false;
+        action.play();
+        maxDuration = Math.max(maxDuration, duration);
+      }
+      console.log(
+        `倒放动画 ${index}: 从 ${action.time}s 开始, timeScale=${
+          action.timeScale
+        },时长：${duration}s`
+      );
+    });
+
+    btn.textContent = "OPEN";
+    isOpen = false;
+
+    // 动画播放完成后重新启用按钮
+    setTimeout(() => {
+      isAnimating = false;
+      btn.disabled = false;
+      btn.style.opacity = "1";
+      btn.style.cursor = "pointer";
+      console.log("关闭动画完成");
+    }, maxDuration * 1000 + 100); // 加100ms缓冲
+  }
 });
+// document.getElementById("open-btn").addEventListener("dblclick", () => {
+//   if (
+//     model &&
+//     modelAnimations &&
+//     modelAnimations.length > 0 &&
+//     !animationPlayed
+//   ) {
+//     // 创建动画混合器
+//     mixer = new THREE.AnimationMixer(model);
+
+//     // 获取并播放所有动画
+//     modelAnimations.forEach((anim) => {
+//       const action = mixer.clipAction(anim);
+//       action.setLoop(THREE.LoopOnce, 1);
+//       action.clampWhenFinished = true;
+//       action.timeScale = -1
+//       action.reset().play();
+//       console.log(`播放动画: ${anim.name}, 时长: ${anim.duration}s`);
+//     });
+
+//     animationPlayed = true;
+//   } else {
+//     console.warn("动画无法播放:", {
+//       modelLoaded: !!model,
+//       hasAnimations: !!modelAnimations && modelAnimations.length > 0,
+//       alreadyPlayed: animationPlayed,
+//     });
+//   }
+// });
 let snow = null;
 function createSnow() {
   const snowParticleCount = 2000;
@@ -1239,18 +1355,15 @@ let marbleSound;
 const audioLoader = new THREE.AudioLoader();
 
 // Load sound
-audioLoader.load(
-  "https://res.cloudinary.com/diu6hubef/video/upload/v1748581401/Project%20Virtual%20Design%20and%20Animation/sound_r7obpg.mp3",
-  (buffer) => {
-    const listener = new THREE.AudioListener();
-    camera.add(listener);
+audioLoader.load("./assets/preview.mp3", (buffer) => {
+  const listener = new THREE.AudioListener();
+  camera.add(listener);
 
-    marbleSound = new THREE.PositionalAudio(listener);
-    marbleSound.setBuffer(buffer);
-    marbleSound.setRefDistance(1);
-    marbleSound.setVolume(0.5);
-  }
-);
+  marbleSound = new THREE.PositionalAudio(listener);
+  marbleSound.setBuffer(buffer);
+  marbleSound.setRefDistance(1);
+  marbleSound.setVolume(0.5);
+});
 const marbles = [];
 
 function spawnMarble() {
@@ -1331,6 +1444,6 @@ function spawnMarble() {
 document.getElementById("ar-btn").addEventListener("click", spawnMarble);
 
 // 在初始化代码末尾添加
-setupPaintingControls(); // 画作控制GUI
-setupCameraControls(); // 相机控制GUI
+// setupPaintingControls(); // 画作控制GUI
+// setupCameraControls(); // 相机控制GUI
 animate(); // 动画循环
