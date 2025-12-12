@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>椭圆形展馆</title>
+    <link rel="stylesheet" href="./main.css" />
+    <!-- 引入Three.js库 -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/loaders/GLTFLoader.js"></script>
+    <!-- 新增dat.GUI库 -->
+    <script src="https://cdn.jsdelivr.net/npm/dat.gui@0.7.7/build/dat.gui.min.js"></script>
+
+    <!-- 在head中添加 -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <meta name="theme-color" content="#000000" />
+  </head>
+  <body>
+    <!-- <script type="importmap">
+      {
+        "imports": {
+          "cannon-es": "https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js",
+        }
+      }
+    </script> -->
+    <!-- 3D场景容器 -->
+    <div id="scene-container"></div>
+
+    <!-- 操作按钮 -->
+    <div class="button-container">
+      <button id="open-btn">OPEN</button>
+      <button id="ar-btn">BGM</button>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
